@@ -1,0 +1,22 @@
+﻿@model IEnumerable<DurableFunctionsBrowser.Infrastructure.OrchestrationInstanceStatus> 
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">InstanceId</th>
+                <th scope="col">Name</th>
+                <th scope="col">Runtime Status</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <th scope="row"><a href="@Url.Action("Instance", "OrchestrationInstances", new { id = item.PartitionKey } )">@item.PartitionKey</a></th>
+                    <td>@item.Name</td>
+                    <td>@item.RuntimeStatus</td>                    
+                </tr>
+            }
+        </tbody>
+    </table>
