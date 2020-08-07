@@ -1,22 +1,47 @@
-﻿@model IEnumerable<DurableFunctionsBrowser.Infrastructure.OrchestrationInstanceStatus> 
+﻿<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">InstanceId</th>
+            <th scope="col">Name</th>
+            <th scope="col">Runtime Status</th>
+        </tr>
+    </thead>
+    <tbody id="instances">
+    </tbody>
+</table>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">InstanceId</th>
-                <th scope="col">Name</th>
-                <th scope="col">Runtime Status</th>
-            </tr>
-        </thead>
-        <tbody>
+<script>
 
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <th scope="row"><a href="@Url.Action("Instance", "OrchestrationInstances", new { id = item.PartitionKey } )">@item.PartitionKey</a></th>
-                    <td>@item.Name</td>
-                    <td>@item.RuntimeStatus</td>                    
-                </tr>
-            }
-        </tbody>
-    </table>
+    var ready = function (fn) {
+
+        // Sanity check
+        if (typeof fn !== 'function') return;
+
+        // If document is already loaded, run method
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
+            return fn();
+        }
+
+        // Otherwise, wait until document is loaded
+        document.addEventListener('DOMContentLoaded', fn, false);
+    };
+    ready(function () {
+        fetch("http://localhost:7071/runtime/webhooks/durableTask/instances")
+            .then(function (response) {
+                response.json().then(function (data) {                    
+                    let instances = document.getElementById('instances');
+                    for (var index in data) {
+                        let instance = data[index];
+                        let newRow = document.createElement('tr');
+                        newRow.innerHTML = `<tr>
+    <th scope="row"><a href="/OrchestrationInstances/Instance/${instance.instanceId}">${instance.instanceId}</a></th>
+    <td>${instance.name}</td>
+    <td>${instance.runtimeStatus}</td>
+</tr>`;
+                        instances.appendChild(newRow);
+                    }
+
+                })
+            });
+    });
+</script>

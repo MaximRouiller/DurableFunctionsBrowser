@@ -1,7 +1,5 @@
 ﻿<p>Events at the top are more recent than those at the bottom.</p>
 
-@model IEnumerable<DurableFunctionsBrowser.Infrastructure.HistoryEvent>
-
 <div class="display-12">
     <div id="experimentationArea"></div>
 </div>
@@ -27,20 +25,33 @@
             .zQualitative(true)
             .width(900);
 
+        let instanceId = window.location.pathname.split('/').slice(-1)[0];
+        let url = `http://localhost:7071/runtime/webhooks/durabletask/instances/${instanceId}?showHistory=true&showInput=true&showHistoryOutput=true`;
 
-        var interval = setInterval(function () {
-            fetch(window.location + '.json')
-                .then(function (response) {
-                    response.json().then(function (data) {
-                        timeline.data(data)
-                            .zQualitative(true)
-                            .width(900);
-                    })
-                });
-            clearInterval(interval);
-        }, 1000);
+        fetch(url)
+            .then(function (response) {
+                response.json().then(function (data) {
+                    console.log(data.historyEvents);
 
-
+                    timeline.data([{
+                        group: data.name,
+                        data: data.historyEvents.map((event, index) => {
+                            let startTimestamp = new Date(event.Timestamp);
+                            let endTimestamp = new Date(startTimestamp.setSeconds(startTimestamp.getSeconds() + 2));
+                            return {
+                                label: `${event.FunctionName}_${index-1}`,
+                                data: [{
+                                    timeRange: [startTimestamp, endTimestamp],
+                                    val: event.EventType
+                                }]
+                            };
+                        })
+                    }])
+                        .zQualitative(true)
+                        .width(900);
+                })
+            });
+        
 
     });
 </script>
@@ -57,16 +68,16 @@
     </thead>
     <tbody>
 
-        @foreach (var item in Model)
-        {
-            <tr>
-                <th scope="row">@item.EventId</th>
-                <td>@item.EventType</td>
-                <td>@item.Name</td>
-                <td>@item.IsPlayed</td>
-                <td>@item.Input</td>
-                <td>@item.Timestamp</td>
-            </tr>
-        }
+        @*@foreach (var item in Model)
+            {
+                <tr>
+                    <th scope="row">@item.EventId</th>
+                    <td>@item.EventType</td>
+                    <td>@item.Name</td>
+                    <td>@item.IsPlayed</td>
+                    <td>@item.Input</td>
+                    <td>@item.Timestamp</td>
+                </tr>
+            }*@
     </tbody>
 </table>
